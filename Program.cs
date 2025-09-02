@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Drawing;
-using OpenTK.Compute.OpenCL;
+
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -21,12 +21,20 @@ public class CollisionManager
         return a.IntersectsWith(b);
     }
 }
-
+public static class Levels
+{
+    public static int NextLevelExperience(int currentLevel)
+    {
+        return (int)(1000 * Math.Pow(1.8, currentLevel));
+    }
+}
 class GOLWindow : GameWindow
 {
+
+
     InputManager inputManager = new InputManager();
     Player player;
-    PlayerRenderer prenderer;
+    PlayerRenderer playerRenderer;
     BulletRenderer bulletRenderer;
 
     EventBus eventBus = new();
@@ -45,14 +53,16 @@ class GOLWindow : GameWindow
     List<PickupEntity> pickups = new();
     List<ExperienceEntity> nuggets = new();
 
+    UIRenderer gui;
+
     public GOLWindow() : base(GameWindowSettings.Default, new NativeWindowSettings
     {
         ClientSize = new Vector2i(800, 700),
         Title = "GOL"
     })
     {
-        player = new Player(eventBus) { weapon = new Weapon(eventBus) };
-        prenderer = new PlayerRenderer(this.ClientSize, pixelSize: 20);
+        player = new Player(eventBus) { weapon = new Weapon(eventBus), Level = 0, Experience = 0 };
+        playerRenderer = new PlayerRenderer(this.ClientSize, pixelSize: 20);
         bulletRenderer = new BulletRenderer(this.ClientSize, pixelSize: 20);
         BulletSpawner = new BulletSpawner(eventBus, bullets);
         PickupSpawner = new PickupSpawner(eventBus, pickups);
@@ -63,6 +73,8 @@ class GOLWindow : GameWindow
         expManager = new ExperienceManager(eventBus, nuggets, player);
         expRenderer = new ExperienceRenderer(nuggets);
         Sfx.Init();
+
+        gui = new(ClientSize, player);
     }
     protected override void OnLoad()
     {
@@ -73,9 +85,9 @@ class GOLWindow : GameWindow
         base.OnRenderFrame(args);
         GL.ClearColor(Color4.CornflowerBlue);
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        prenderer.BeginFrame(ClientSize);
-        prenderer.Render(player, Color4.Red);
-        prenderer.EndFrame();
+        playerRenderer.BeginFrame(ClientSize);
+        playerRenderer.Render(player, Color4.Red);
+        playerRenderer.EndFrame();
         bulletRenderer.BeginFrame(ClientSize);
         foreach (var b in bullets)
         {
@@ -88,12 +100,16 @@ class GOLWindow : GameWindow
             PickupRenderer.Render(p);
         }
         PickupRenderer.EndFrame();
-        enemyRenderer.BeginFrame(ClientSize);
-        enemyRenderer.Render();
-        enemyRenderer.EndFrame();
         expRenderer.BeginFrame(ClientSize);
         expRenderer.Render();
         expRenderer.EndFrame();
+        enemyRenderer.BeginFrame(ClientSize);
+        enemyRenderer.Render();
+        enemyRenderer.EndFrame();
+
+        gui.BeginFrame(ClientSize);
+        gui.Render();
+        gui.EndFrame();
         this.SwapBuffers();
     }
 

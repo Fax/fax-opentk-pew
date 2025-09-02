@@ -22,6 +22,12 @@ public class Player
         Sfx.PlayPling();
         Experience += evt.Amount;
         Console.WriteLine($"Experience: {Experience}");
+        if (Experience > Levels.NextLevelExperience(Level))
+        {
+            Level++;
+            _bus.Publish<NextLevelEvent>(new NextLevelEvent(Level));
+            Console.WriteLine($"Next level!  {Level}");
+        }
     }
     public void ScoreChange(ScoreEvent evt)
     {
@@ -47,6 +53,9 @@ public class Player
         (int)Size.X,
         (int)Size.Y
     );
+
+    public int Level;
+
     public float Speed = 10f;
 
     public Weapon? weapon;

@@ -17,7 +17,7 @@ public static class Sfx
     public static void Init()
     {
         _device = ALC.OpenDevice(null);
-        _context = ALC.CreateContext(_device, (int[])null);
+        _context = ALC.CreateContext(_device, (int[]?)null);
         ALC.MakeContextCurrent(_context);
         AL.GenSource(out _source);
         AL.GenSource(out _sourcePling);
