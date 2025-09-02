@@ -20,6 +20,7 @@ public class EnemyManager
         var enemyCollided = Enemies.FirstOrDefault(x => x.EntityId == evt.CollisionEntityId);
         if (enemyCollided == null) return;
         enemyCollided.Active = false;
+        _bus.Publish<SpawnExperienceEvent>(new SpawnExperienceEvent(100, enemyCollided.Position));
         Sfx.PlayBoom();
     }
 

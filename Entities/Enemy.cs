@@ -8,7 +8,7 @@ public class EnemyEntity
     public float Life = 2.0f;
     public Vector2 Size = new(30f);
     public Color4 Color = Color4.Red;
-    public float Speed = 10.0f;
+    public float Speed = 25.0f;
     public Vector2 Position;
     public bool Active = true;
 }

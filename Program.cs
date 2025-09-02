@@ -39,8 +39,11 @@ class GOLWindow : GameWindow
     PickupSpawner PickupSpawner;
     PickupManager PickupManager;
     PickupRenderer PickupRenderer;
+    ExperienceManager expManager;
+    ExperienceRenderer expRenderer;
     CollisionManager collisionManager = new CollisionManager();
     List<PickupEntity> pickups = new();
+    List<ExperienceEntity> nuggets = new();
 
     public GOLWindow() : base(GameWindowSettings.Default, new NativeWindowSettings
     {
@@ -48,6 +51,7 @@ class GOLWindow : GameWindow
         Title = "GOL"
     })
     {
+        player = new Player(eventBus) { weapon = new Weapon(eventBus) };
         prenderer = new PlayerRenderer(this.ClientSize, pixelSize: 20);
         bulletRenderer = new BulletRenderer(this.ClientSize, pixelSize: 20);
         BulletSpawner = new BulletSpawner(eventBus, bullets);
@@ -56,7 +60,8 @@ class GOLWindow : GameWindow
         PickupRenderer = new PickupRenderer(ClientSize);
         enemyManager = new EnemyManager(eventBus, enemies);
         enemyRenderer = new EnemyRenderer(enemies);
-        player = new Player(eventBus) { weapon = new Weapon(eventBus) };
+        expManager = new ExperienceManager(eventBus, nuggets, player);
+        expRenderer = new ExperienceRenderer(nuggets);
         Sfx.Init();
     }
     protected override void OnLoad()
@@ -86,6 +91,9 @@ class GOLWindow : GameWindow
         enemyRenderer.BeginFrame(ClientSize);
         enemyRenderer.Render();
         enemyRenderer.EndFrame();
+        expRenderer.BeginFrame(ClientSize);
+        expRenderer.Render();
+        expRenderer.EndFrame();
         this.SwapBuffers();
     }
 
@@ -94,7 +102,7 @@ class GOLWindow : GameWindow
 
         var dt = (float)args.Time;
         inputManager.Update(KeyboardState, MouseState);
-        
+
         player.Update(inputManager, dt);
 
         BulletSpawner.Update(dt);
@@ -133,9 +141,30 @@ class GOLWindow : GameWindow
             }
         }
 
+        var playerRangeBox = player.Position.ToCenteredBoundingBox(player.Size, new(150.0f));
+        var playerBox = player.BoundingBox;
+        foreach (var nugget in nuggets.Where(x => x.Active))
+        {
+            if (nugget.Speed > 0)
+            {
+                // this is already moving
+                if (collisionManager.CheckCollision(playerBox, nugget.Position.ToBoundingBox(new(15.0f))))
+                {
+                    nugget.Active = false;
+                    eventBus.Publish<CollectExperienceEvent>(new CollectExperienceEvent(nugget.Amount, nugget.Position));
+                }
+            }
+            else
+            {
+                if (collisionManager.CheckCollision(playerRangeBox, nugget.Position.ToBoundingBox(new(15f))))
+                {
+                    nugget.Speed += .9f;
+                }
+            }
+        }
+
+        expManager.Update(dt);
         base.OnUpdateFrame(args);
-
-
         eventBus.Drain();
     }
 

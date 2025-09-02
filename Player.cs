@@ -7,12 +7,20 @@ using OpenTK.Mathematics;
 public class Player
 {
     public int Score = 0;
+    public int Experience = 0;
     public readonly int EntityId = IdManager.NextId();
     public Player(EventBus bus)
     {
         _bus = bus;
         _bus.Subscribe<WeaponPickupEvent>(PickUpWeapon);
         _bus.Subscribe<ScoreEvent>(ScoreChange);
+        _bus.Subscribe<CollectExperienceEvent>(GetExp);
+    }
+
+    public void GetExp(CollectExperienceEvent evt)
+    {
+        Experience += evt.Amount;
+        Console.WriteLine($"Experience: {Experience}");
     }
     public void ScoreChange(ScoreEvent evt)
     {
@@ -30,13 +38,13 @@ public class Player
     public Vector2 Position = new Vector2(100, 100);
 
     public float Rotation = 0.0f;
-
+    public Vector2 Size = new(20.0f);
     public Rectangle BoundingBox => new Rectangle
     (
         (int)Position.X,
         (int)Position.Y,
-        20,
-        20
+        (int)Size.X,
+        (int)Size.Y
     );
     public float Speed = 10f;
 

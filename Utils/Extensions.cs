@@ -17,4 +17,9 @@ public static class Vector2Extensions
     {
         return new Rectangle((int)origin.X, (int)origin.Y, (int)size.X, (int)size.Y);
     }
+    public static Rectangle ToCenteredBoundingBox(this Vector2 cornerOrigin, Vector2 entitySize, Vector2 size)
+    {
+
+        return new Rectangle((int)(cornerOrigin.X + entitySize.X / 2 - size.X / 2), (int)(cornerOrigin.Y + entitySize.Y / 2 - size.Y / 2), (int)size.X, (int)size.Y);
+    }
 }

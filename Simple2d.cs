@@ -73,6 +73,29 @@ static class Simple2D
     Push(x, y, color); Push(x + w, y + h, color); Push(x, y + h, color);
   }
 
+public static void Diamond(Vector2 pos, Vector2 size, Vector4 color)
+{
+    float cx = pos.X + size.X / 2f;
+    float cy = pos.Y + size.Y / 2f;
+    float hw = size.X / 2f;
+    float hh = size.Y / 2f;
+
+    // Four vertices (top, right, bottom, left)
+    Vector2 top    = new Vector2(cx, cy - hh);
+    Vector2 right  = new Vector2(cx + hw, cy);
+    Vector2 bottom = new Vector2(cx, cy + hh);
+    Vector2 left   = new Vector2(cx - hw, cy);
+
+    // Triangles: top-right-bottom, top-bottom-left
+    Push(top.X,    top.Y,    color);
+    Push(right.X,  right.Y,  color);
+    Push(bottom.X, bottom.Y, color);
+
+    Push(top.X,    top.Y,    color);
+    Push(bottom.X, bottom.Y, color);
+    Push(left.X,   left.Y,   color);
+}
+
   public static void Flush()
   {
     if (verts.Count == 0) return;
@@ -89,7 +112,14 @@ static class Simple2D
   { GL.DeleteBuffer(vbo); GL.DeleteVertexArray(vao); GL.DeleteProgram(prog); }
 
   static void Push(float x, float y, Vector4 c)
-  { verts.Add(x); verts.Add(y); verts.Add(c.X); verts.Add(c.Y); verts.Add(c.Z); verts.Add(c.W); }
+  {
+    verts.Add(x);
+    verts.Add(y);
+    verts.Add(c.X);
+    verts.Add(c.Y);
+    verts.Add(c.Z);
+    verts.Add(c.W);
+  }
 
   static int MakeProgram(string vsSrc, string fsSrc)
   {
