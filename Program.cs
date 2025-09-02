@@ -41,6 +41,7 @@ class GOLWindow : GameWindow
     PickupRenderer PickupRenderer;
     CollisionManager collisionManager = new CollisionManager();
     List<PickupEntity> pickups = new();
+
     public GOLWindow() : base(GameWindowSettings.Default, new NativeWindowSettings
     {
         ClientSize = new Vector2i(800, 700),
@@ -56,6 +57,7 @@ class GOLWindow : GameWindow
         enemyManager = new EnemyManager(eventBus, enemies);
         enemyRenderer = new EnemyRenderer(enemies);
         player = new Player(eventBus) { weapon = new Weapon(eventBus) };
+        Sfx.Init();
     }
     protected override void OnLoad()
     {
@@ -140,6 +142,7 @@ class GOLWindow : GameWindow
 
     public override void Close()
     {
+        Sfx.Shutdown();
         base.Close();
     }
 }

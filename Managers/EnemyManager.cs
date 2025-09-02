@@ -20,6 +20,7 @@ public class EnemyManager
         var enemyCollided = Enemies.FirstOrDefault(x => x.EntityId == evt.CollisionEntityId);
         if (enemyCollided == null) return;
         enemyCollided.Active = false;
+        Sfx.PlayBoom();
     }
 
     public float Cooldown = .15f;

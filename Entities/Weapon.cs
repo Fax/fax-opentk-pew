@@ -21,5 +21,6 @@ public class Weapon
         if (_t > 0) return;
         _t = Cooldown;
         _bus.Publish(new ShootEvent(origin, direction.Normalized(), speed, BulletType));
+        Sfx.PlayShoot();
     }
 }
