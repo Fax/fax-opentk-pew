@@ -19,6 +19,7 @@ public class Player
 
     public void GetExp(CollectExperienceEvent evt)
     {
+        Sfx.PlayPling();
         Experience += evt.Amount;
         Console.WriteLine($"Experience: {Experience}");
     }

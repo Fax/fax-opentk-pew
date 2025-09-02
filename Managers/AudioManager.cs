@@ -9,6 +9,7 @@ public static class Sfx
     static ALDevice _device;
     static ALContext _context;
     static int _source;
+    static int _sourcePling;
     static bool _ready;
 
     // Init the current device. the int[]null thing is a trial and error as I have no idea what to pass as flags.
@@ -18,7 +19,8 @@ public static class Sfx
         _device = ALC.OpenDevice(null);
         _context = ALC.CreateContext(_device, (int[])null);
         ALC.MakeContextCurrent(_context);
-        _source = AL.GenSource();
+        AL.GenSource(out _source);
+        AL.GenSource(out _sourcePling);
         _ready = true;
     }
 
@@ -65,6 +67,23 @@ public static class Sfx
         AL.SourceStop(_source);
         AL.Source(_source, ALSourcei.Buffer, buffer);
         AL.SourcePlay(_source);
+        AL.DeleteBuffer(buffer);
+    }
+    public static void PlayPling()
+    {
+
+        if (!_ready) return;
+
+        const int sampleRate = 48000;
+        const float duration = 0.8f;         // 120 ms
+        short[] pcm = MakePlingPCM(sampleRate, duration);
+        Span<byte> bytes = MemoryMarshal.AsBytes(pcm.AsSpan());
+        ref byte first = ref MemoryMarshal.GetReference(bytes);
+        int buffer = AL.GenBuffer();
+        AL.BufferData(buffer, ALFormat.Mono16, ref first, pcm.Length * sizeof(short), sampleRate);
+        AL.SourceStop(_sourcePling);
+        AL.Source(_sourcePling, ALSourcei.Buffer, buffer);
+        AL.SourcePlay(_sourcePling);
         AL.DeleteBuffer(buffer);
     }
 
@@ -197,4 +216,51 @@ public static class Sfx
 
         static float Lerp(float a, float b, float t) => a + (b - a) * t;
     }
+
+
+
+    static short[] MakePlingPCM(int sr, float seconds)
+    {
+        int n = (int)(sr * seconds);
+        var data = new short[n];
+
+        float baseFreq = 1500f;       // main pitch
+        float harmonic = baseFreq * 2.01f; // slight detuned harmonic
+        float amplitudeDecay = 0.15f; // longer than pew, but still short
+        float sineAmt = 0.9f;         // mostly tonal
+        float noiseAmt = 0.1f;        // tiny bit of strike noise
+
+        double phase1 = 0.0;
+        double phase2 = 0.0;
+        var rnd = new Random();
+
+        for (int i = 0; i < n; i++)
+        {
+            float t = i / (float)sr;
+
+            // envelope: fast attack, exponential decay
+            float env = MathF.Exp(-t / amplitudeDecay);
+            float attack = MathF.Min(1f, t * 1000f); // very fast attack
+            env *= attack;
+
+            // phase increment
+            phase1 += 2.0 * Math.PI * baseFreq / sr;
+            phase2 += 2.0 * Math.PI * harmonic / sr;
+
+            // components
+            float sine = (float)Math.Sin(phase1);
+            float overtone = (float)Math.Sin(phase2) * 0.5f;
+            float noise = (float)(rnd.NextDouble() * 2.0 - 1.0) * 0.3f;
+
+            float sample = env * (sineAmt * (sine + overtone) + noiseAmt * noise);
+            sample = MathF.Tanh(sample * 2.2f) * 0.4f;
+
+            int s = (int)(sample * short.MaxValue);
+            s = Math.Clamp(s, short.MinValue, short.MaxValue);
+            data[i] = (short)s;
+        }
+
+        return data;
+    }
+
 }
