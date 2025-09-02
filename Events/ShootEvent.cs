@@ -17,6 +17,27 @@ public readonly struct ShootEvent : IGameEvent
     int IGameEvent.EventID => id;
 }
 
+
+public readonly struct BulletCollisionEvent : IGameEvent
+{
+    private readonly int id = IdManager.NextId();
+    int IGameEvent.EventID => id;
+    public readonly int BulletId;
+    public readonly int CollisionEntityId;
+    public BulletCollisionEvent(int entityId, int collisionEntityId)
+    {
+        BulletId = entityId;
+        CollisionEntityId = collisionEntityId;
+    }
+}
+
+public readonly struct ScoreEvent : IGameEvent
+{
+    public readonly int Score = 10;
+    private readonly int id = IdManager.NextId();
+    int IGameEvent.EventID => id;
+    public ScoreEvent(){}
+}
 public readonly struct WeaponPickupEvent : IGameEvent
 {
 

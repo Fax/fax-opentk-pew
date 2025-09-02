@@ -9,6 +9,7 @@ public class Bullet
     public Vector4 Color = new(1.0f);
     public Vector2 Size = new(10, 10);
     public float Friction = 0.0f;
+    public int EntityId = IdManager.NextId();
 }
 
 

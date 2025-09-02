@@ -6,11 +6,17 @@ using OpenTK.Mathematics;
 
 public class Player
 {
+    public int Score = 0;
     public readonly int EntityId = IdManager.NextId();
     public Player(EventBus bus)
     {
         _bus = bus;
         _bus.Subscribe<WeaponPickupEvent>(PickUpWeapon);
+        _bus.Subscribe<ScoreEvent>(ScoreChange);
+    }
+    public void ScoreChange(ScoreEvent evt)
+    {
+        Score += evt.Score;
     }
     public void PickUpWeapon(WeaponPickupEvent evt)
     {

@@ -23,7 +23,7 @@ public class InputManager
 
     public Vector2 MousePosition;
 
-    public void Update(KeyboardState state)
+    public void Update(KeyboardState state, MouseState mouseState)
     {
         Up = state.IsKeyDown(Keys.Up) || state.IsKeyDown(Keys.W);
         Down = state.IsKeyDown(Keys.Down) || state.IsKeyDown(Keys.S);
@@ -32,18 +32,17 @@ public class InputManager
         Space = state.IsKeyDown(Keys.Space);
         SpacePulse = state.IsKeyPressed(Keys.Space);
         SpaceHold = !SpacePulse && Space; // not just pulsed BUT still down
-        Shoot = Shoot || SpacePulse;
-    }
-    public void Update(MouseState state)
-    {
-        LeftClick = state.IsButtonPressed(MouseButton.Left);
-        RightClick = state.IsButtonPressed(MouseButton.Right);
-        MiddleClick = state.IsButtonPressed(MouseButton.Middle);
-        LeftHold = state.IsButtonDown(MouseButton.Left);
-        RightHold = state.IsButtonDown(MouseButton.Right);
-        MiddleHold = state.IsButtonDown(MouseButton.Middle);
-        MousePosition = state.Position;
-        Shoot = Shoot || LeftClick;
+
+
+        LeftClick = mouseState.IsButtonPressed(MouseButton.Left);
+        RightClick = mouseState.IsButtonPressed(MouseButton.Right);
+        MiddleClick = mouseState.IsButtonPressed(MouseButton.Middle);
+        LeftHold = mouseState.IsButtonDown(MouseButton.Left);
+        RightHold = mouseState.IsButtonDown(MouseButton.Right);
+        MiddleHold = mouseState.IsButtonDown(MouseButton.Middle);
+        MousePosition = mouseState.Position;
+
+        Shoot = SpacePulse || LeftClick;
     }
 }
 

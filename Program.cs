@@ -31,6 +31,10 @@ class GOLWindow : GameWindow
 
     EventBus eventBus = new();
     List<Bullet> bullets = new List<Bullet>();
+
+    List<EnemyEntity> enemies = new List<EnemyEntity>();
+    EnemyManager enemyManager;
+    EnemyRenderer enemyRenderer;
     BulletSpawner BulletSpawner;
     PickupSpawner PickupSpawner;
     PickupManager PickupManager;
@@ -49,6 +53,8 @@ class GOLWindow : GameWindow
         PickupSpawner = new PickupSpawner(eventBus, pickups);
         PickupManager = new PickupManager(pickups);
         PickupRenderer = new PickupRenderer(ClientSize);
+        enemyManager = new EnemyManager(eventBus, enemies);
+        enemyRenderer = new EnemyRenderer(enemies);
         player = new Player(eventBus) { weapon = new Weapon(eventBus) };
     }
     protected override void OnLoad()
@@ -75,6 +81,9 @@ class GOLWindow : GameWindow
             PickupRenderer.Render(p);
         }
         PickupRenderer.EndFrame();
+        enemyRenderer.BeginFrame(ClientSize);
+        enemyRenderer.Render();
+        enemyRenderer.EndFrame();
         this.SwapBuffers();
     }
 
@@ -82,28 +91,43 @@ class GOLWindow : GameWindow
     {
 
         var dt = (float)args.Time;
-        inputManager.Update(KeyboardState);
-        inputManager.Update(MouseState);
+        inputManager.Update(KeyboardState, MouseState);
+        
         player.Update(inputManager, dt);
 
         BulletSpawner.Update(dt);
         PickupSpawner.Update(dt);
         PickupManager.Update(dt);
+        enemyManager.Update(dt, player.Position);
+
         if (this.KeyboardState.IsKeyDown(Keys.Escape)) this.Close();
+
+        // I need to check bullet collisions
+
+        foreach (var b in bullets)
+        {
+            var box = b.Position.ToBoundingBox(b.Size);
+            foreach (var enemy in enemies)
+            {
+                var enemyBox = enemy.Position.ToBoundingBox(enemy.Size);
+                if (collisionManager.CheckCollision(box, enemyBox))
+                {
+                    eventBus.Publish<BulletCollisionEvent>(new BulletCollisionEvent(b.EntityId, enemy.EntityId));
+                }
+            }
+        }
 
         foreach (var x in pickups)
         {
             var box = new Rectangle((int)x.Position.X, (int)x.Position.Y, (int)x.Size.X, (int)x.Size.Y);
             if (collisionManager.CheckCollision(player.BoundingBox, box))
             {
-
                 switch (x)
                 {
                     case WeaponPickup we:
                         eventBus.Publish<WeaponPickupEvent>(new WeaponPickupEvent(we.BulletType, we.Id, player.EntityId));
                         break;
                 }
-
             }
         }
 

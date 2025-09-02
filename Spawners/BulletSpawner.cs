@@ -38,6 +38,13 @@ public class BulletSpawner : ISpawner<Bullet>
     {
         _bullets = bullets;
         bus.Subscribe<ShootEvent>(OnShoot);
+        bus.Subscribe<BulletCollisionEvent>(OnCollide);
+    }
+    void OnCollide(BulletCollisionEvent evt)
+    {
+        var b = _bullets.FirstOrDefault(x => x.EntityId == evt.BulletId);
+        if (b == null) return;
+        b.Life = 0f;
     }
     void OnShoot(ShootEvent e)
         => _bullets.Add(CreateBullet(e));
@@ -50,6 +57,7 @@ public class BulletSpawner : ISpawner<Bullet>
             b.Position += dt * b.Velocity;
         }); // decrease life
 
+        // should trigger big booms here.
         _bullets.RemoveAll(b => b.Life <= 0);
 
     }
