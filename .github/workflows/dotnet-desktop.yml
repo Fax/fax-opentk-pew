@@ -6,7 +6,8 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-
+permissions:
+  contents: write           # needed to create Releases
 jobs:
 
   build:
@@ -36,6 +37,28 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
-
+    
     - name: Publish
-      run: dotnet publish -c Release -o ./publish
+      run: dotnet publish -c ${{ matrix.configuration }} --property:PublishDir=${{ env.PUB_DIR }}
+
+    - name: Zip published output
+      run: |
+        if (Test-Path $Env:ZIP_NAME) { Remove-Item $Env:ZIP_NAME -Force }
+        Compress-Archive -Path "${{ env.PUB_DIR }}\*" -DestinationPath $Env:ZIP_NAME
+      shell: pwsh
+
+    - name: Upload CI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.configuration }}-publish
+        path: ${{ env.ZIP_NAME }}
+
+      # Create GitHub Release and attach the zip *only* on tag pushes
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ${{ env.ZIP_NAME }}
+        draft: false
+        prerelease: false      
+
