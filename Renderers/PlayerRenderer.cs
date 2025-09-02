@@ -18,7 +18,7 @@ class PlayerRenderer : IDisposable
     {
         Simple2D.Quad(new Vector2(p.Position.X, p.Position.Y),
                       size,
-                      new Vector4(color.R, color.G, color.B, color.A),
+                      color.ToVector(),
                       p.Rotation);
     }
 

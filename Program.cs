@@ -86,7 +86,7 @@ class GOLWindow : GameWindow
         GL.ClearColor(Color4.CornflowerBlue);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         playerRenderer.BeginFrame(ClientSize);
-        playerRenderer.Render(player, Color4.Red);
+        playerRenderer.Render(player, Color4.LawnGreen);
         playerRenderer.EndFrame();
         bulletRenderer.BeginFrame(ClientSize);
         foreach (var b in bullets)
